@@ -1,9 +1,11 @@
-import { Home, Bell, MessageSquare, Users, Tag } from "lucide-react";
+import { Home, Bell, MessageSquare, Users, Tag, Shield, Reply } from "lucide-react";
 import Index from "./pages/Index.jsx";
 import AutomatedNotifications from "./pages/AutomatedNotifications.jsx";
 import ChatbotIntegration from "./pages/ChatbotIntegration.jsx";
 import BulkMessaging from "./pages/BulkMessaging.jsx";
 import LabelManagement from "./pages/LabelManagement.jsx";
+import AntiBanFeatures from "./pages/AntiBanFeatures.jsx";
+import AutoReply from "./pages/AutoReply.jsx";
 
 export const navItems = [
   {
@@ -35,5 +37,17 @@ export const navItems = [
     to: "/label-management",
     icon: <Tag className="h-4 w-4" />,
     page: <LabelManagement />,
+  },
+  {
+    title: "Anti-Ban Features",
+    to: "/anti-ban-features",
+    icon: <Shield className="h-4 w-4" />,
+    page: <AntiBanFeatures />,
+  },
+  {
+    title: "Auto-Reply",
+    to: "/auto-reply",
+    icon: <Reply className="h-4 w-4" />,
+    page: <AutoReply />,
   },
 ];
