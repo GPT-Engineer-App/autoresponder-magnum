@@ -6,29 +6,52 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
+import { PlusCircle, Trash2 } from "lucide-react";
 
 const AutoReply = () => {
-  const [trigger, setTrigger] = useState("");
-  const [response, setResponse] = useState("");
-  const [includeMedia, setIncludeMedia] = useState(false);
-  const [mediaType, setMediaType] = useState("");
-  const [mediaFile, setMediaFile] = useState(null);
-  const [includeVoice, setIncludeVoice] = useState(false);
-  const [voiceMessage, setVoiceMessage] = useState(null);
+  const [rules, setRules] = useState([
+    { trigger: "", responses: [""], recipientType: "all" }
+  ]);
+  const [welcomeMessage, setWelcomeMessage] = useState("");
+  const [enableWelcomeMessage, setEnableWelcomeMessage] = useState(false);
+
+  const handleAddRule = () => {
+    setRules([...rules, { trigger: "", responses: [""], recipientType: "all" }]);
+  };
+
+  const handleRemoveRule = (index) => {
+    const newRules = rules.filter((_, i) => i !== index);
+    setRules(newRules);
+  };
+
+  const handleRuleChange = (index, field, value) => {
+    const newRules = [...rules];
+    newRules[index][field] = value;
+    setRules(newRules);
+  };
+
+  const handleAddResponse = (ruleIndex) => {
+    const newRules = [...rules];
+    newRules[ruleIndex].responses.push("");
+    setRules(newRules);
+  };
+
+  const handleRemoveResponse = (ruleIndex, responseIndex) => {
+    const newRules = [...rules];
+    newRules[ruleIndex].responses = newRules[ruleIndex].responses.filter((_, i) => i !== responseIndex);
+    setRules(newRules);
+  };
+
+  const handleResponseChange = (ruleIndex, responseIndex, value) => {
+    const newRules = [...rules];
+    newRules[ruleIndex].responses[responseIndex] = value;
+    setRules(newRules);
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Mock function to save auto-reply settings
-    console.log("Saving auto-reply settings:", { trigger, response, includeMedia, mediaType, mediaFile, includeVoice, voiceMessage });
+    console.log("Saving auto-reply settings:", { rules, welcomeMessage, enableWelcomeMessage });
     toast.success("Auto-reply configured successfully!");
-  };
-
-  const handleMediaFileChange = (e) => {
-    setMediaFile(e.target.files[0]);
-  };
-
-  const handleVoiceMessageChange = (e) => {
-    setVoiceMessage(e.target.files[0]);
   };
 
   return (
@@ -36,74 +59,85 @@ const AutoReply = () => {
       <h1 className="text-3xl font-bold mb-6">Auto-Reply Configuration</h1>
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="space-y-2">
-          <Label htmlFor="trigger">Trigger Word/Phrase</Label>
-          <Input
-            id="trigger"
-            value={trigger}
-            onChange={(e) => setTrigger(e.target.value)}
-            placeholder="Enter trigger word or phrase"
-            required
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="response">Auto-Reply Message</Label>
-          <Textarea
-            id="response"
-            value={response}
-            onChange={(e) => setResponse(e.target.value)}
-            placeholder="Enter auto-reply message"
-            required
-          />
-        </div>
-        <div className="flex items-center space-x-2">
-          <Switch
-            id="includeMedia"
-            checked={includeMedia}
-            onCheckedChange={setIncludeMedia}
-          />
-          <Label htmlFor="includeMedia">Include Media</Label>
-        </div>
-        {includeMedia && (
-          <div className="space-y-2">
-            <Label htmlFor="mediaType">Media Type</Label>
-            <Select value={mediaType} onValueChange={setMediaType}>
-              <SelectTrigger id="mediaType">
-                <SelectValue placeholder="Select media type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="image">Image</SelectItem>
-                <SelectItem value="video">Video</SelectItem>
-                <SelectItem value="document">Document</SelectItem>
-              </SelectContent>
-            </Select>
-            <Input
-              id="mediaFile"
-              type="file"
-              onChange={handleMediaFileChange}
-              accept={mediaType === 'image' ? 'image/*' : mediaType === 'video' ? 'video/*' : '*/*'}
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="enableWelcome"
+              checked={enableWelcomeMessage}
+              onCheckedChange={setEnableWelcomeMessage}
             />
+            <Label htmlFor="enableWelcome">Enable Welcome Message</Label>
           </div>
-        )}
-        <div className="flex items-center space-x-2">
-          <Switch
-            id="includeVoice"
-            checked={includeVoice}
-            onCheckedChange={setIncludeVoice}
-          />
-          <Label htmlFor="includeVoice">Include Voice Message</Label>
-        </div>
-        {includeVoice && (
-          <div className="space-y-2">
-            <Label htmlFor="voiceMessage">Voice Message</Label>
-            <Input
-              id="voiceMessage"
-              type="file"
-              onChange={handleVoiceMessageChange}
-              accept="audio/*"
+          {enableWelcomeMessage && (
+            <Textarea
+              value={welcomeMessage}
+              onChange={(e) => setWelcomeMessage(e.target.value)}
+              placeholder="Enter welcome message"
+              className="mt-2"
             />
+          )}
+        </div>
+
+        {rules.map((rule, ruleIndex) => (
+          <div key={ruleIndex} className="border p-4 rounded-md space-y-4">
+            <div className="flex justify-between items-center">
+              <h3 className="text-lg font-semibold">Rule {ruleIndex + 1}</h3>
+              <Button type="button" variant="destructive" size="icon" onClick={() => handleRemoveRule(ruleIndex)}>
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor={`trigger-${ruleIndex}`}>Trigger Word/Phrase</Label>
+              <Input
+                id={`trigger-${ruleIndex}`}
+                value={rule.trigger}
+                onChange={(e) => handleRuleChange(ruleIndex, "trigger", e.target.value)}
+                placeholder="Enter trigger word or phrase"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor={`recipientType-${ruleIndex}`}>Recipient Type</Label>
+              <Select
+                value={rule.recipientType}
+                onValueChange={(value) => handleRuleChange(ruleIndex, "recipientType", value)}
+              >
+                <SelectTrigger id={`recipientType-${ruleIndex}`}>
+                  <SelectValue placeholder="Select recipient type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="contacts">Contacts</SelectItem>
+                  <SelectItem value="groups">Groups</SelectItem>
+                  <SelectItem value="unknown">Unknown Numbers</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {rule.responses.map((response, responseIndex) => (
+              <div key={responseIndex} className="space-y-2">
+                <Label htmlFor={`response-${ruleIndex}-${responseIndex}`}>Response {responseIndex + 1}</Label>
+                <div className="flex space-x-2">
+                  <Textarea
+                    id={`response-${ruleIndex}-${responseIndex}`}
+                    value={response}
+                    onChange={(e) => handleResponseChange(ruleIndex, responseIndex, e.target.value)}
+                    placeholder="Enter auto-reply message"
+                    required
+                  />
+                  <Button type="button" variant="destructive" size="icon" onClick={() => handleRemoveResponse(ruleIndex, responseIndex)}>
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+            <Button type="button" variant="outline" onClick={() => handleAddResponse(ruleIndex)}>
+              Add Response
+            </Button>
           </div>
-        )}
-        <Button type="submit">Save Auto-Reply</Button>
+        ))}
+        <Button type="button" variant="outline" onClick={handleAddRule}>
+          <PlusCircle className="mr-2 h-4 w-4" /> Add Rule
+        </Button>
+        <Button type="submit">Save Auto-Reply Configuration</Button>
       </form>
     </div>
   );
