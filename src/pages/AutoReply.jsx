@@ -6,17 +6,17 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { PlusCircle, Trash2 } from "lucide-react";
+import { PlusCircle, Trash2, Download, Upload } from "lucide-react";
 
 const AutoReply = () => {
   const [rules, setRules] = useState([
-    { trigger: "", responses: [""], recipientType: "all" }
+    { trigger: "", responses: [""], recipientType: "all", ignoredContacts: "", scheduledTime: "", aiService: "", followUpTime: "" }
   ]);
   const [welcomeMessage, setWelcomeMessage] = useState("");
   const [enableWelcomeMessage, setEnableWelcomeMessage] = useState(false);
 
   const handleAddRule = () => {
-    setRules([...rules, { trigger: "", responses: [""], recipientType: "all" }]);
+    setRules([...rules, { trigger: "", responses: [""], recipientType: "all", ignoredContacts: "", scheduledTime: "", aiService: "", followUpTime: "" }]);
   };
 
   const handleRemoveRule = (index) => {
@@ -52,6 +52,37 @@ const AutoReply = () => {
     e.preventDefault();
     console.log("Saving auto-reply settings:", { rules, welcomeMessage, enableWelcomeMessage });
     toast.success("Auto-reply configured successfully!");
+  };
+
+  const handleExportRules = () => {
+    const dataStr = JSON.stringify({ rules, welcomeMessage, enableWelcomeMessage });
+    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+    const exportFileDefaultName = 'auto_reply_rules.json';
+
+    const linkElement = document.createElement('a');
+    linkElement.setAttribute('href', dataUri);
+    linkElement.setAttribute('download', exportFileDefaultName);
+    linkElement.click();
+    toast.success("Rules exported successfully!");
+  };
+
+  const handleImportRules = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const importedData = JSON.parse(e.target.result);
+          setRules(importedData.rules);
+          setWelcomeMessage(importedData.welcomeMessage);
+          setEnableWelcomeMessage(importedData.enableWelcomeMessage);
+          toast.success("Rules imported successfully!");
+        } catch (error) {
+          toast.error("Error importing rules. Please check the file format.");
+        }
+      };
+      reader.readAsText(file);
+    }
   };
 
   return (
@@ -112,6 +143,51 @@ const AutoReply = () => {
                 </SelectContent>
               </Select>
             </div>
+            <div className="space-y-2">
+              <Label htmlFor={`ignoredContacts-${ruleIndex}`}>Ignored Contacts/Groups</Label>
+              <Input
+                id={`ignoredContacts-${ruleIndex}`}
+                value={rule.ignoredContacts}
+                onChange={(e) => handleRuleChange(ruleIndex, "ignoredContacts", e.target.value)}
+                placeholder="Enter ignored contacts or groups (comma-separated)"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor={`scheduledTime-${ruleIndex}`}>Scheduled Time</Label>
+              <Input
+                id={`scheduledTime-${ruleIndex}`}
+                type="datetime-local"
+                value={rule.scheduledTime}
+                onChange={(e) => handleRuleChange(ruleIndex, "scheduledTime", e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor={`aiService-${ruleIndex}`}>AI Service</Label>
+              <Select
+                value={rule.aiService}
+                onValueChange={(value) => handleRuleChange(ruleIndex, "aiService", value)}
+              >
+                <SelectTrigger id={`aiService-${ruleIndex}`}>
+                  <SelectValue placeholder="Select AI service" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">None</SelectItem>
+                  <SelectItem value="gpt3">GPT-3</SelectItem>
+                  <SelectItem value="gpt4">GPT-4</SelectItem>
+                  <SelectItem value="dialogflow">Dialogflow</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor={`followUpTime-${ruleIndex}`}>Follow-up Time (hours)</Label>
+              <Input
+                id={`followUpTime-${ruleIndex}`}
+                type="number"
+                value={rule.followUpTime}
+                onChange={(e) => handleRuleChange(ruleIndex, "followUpTime", e.target.value)}
+                placeholder="Enter follow-up time in hours"
+              />
+            </div>
             {rule.responses.map((response, responseIndex) => (
               <div key={responseIndex} className="space-y-2">
                 <Label htmlFor={`response-${ruleIndex}-${responseIndex}`}>Response {responseIndex + 1}</Label>
@@ -137,7 +213,24 @@ const AutoReply = () => {
         <Button type="button" variant="outline" onClick={handleAddRule}>
           <PlusCircle className="mr-2 h-4 w-4" /> Add Rule
         </Button>
-        <Button type="submit">Save Auto-Reply Configuration</Button>
+        <div className="flex space-x-4">
+          <Button type="submit">Save Auto-Reply Configuration</Button>
+          <Button type="button" variant="secondary" onClick={handleExportRules}>
+            <Download className="mr-2 h-4 w-4" /> Export Rules
+          </Button>
+          <div>
+            <input
+              type="file"
+              id="importRules"
+              className="hidden"
+              onChange={handleImportRules}
+              accept=".json"
+            />
+            <Button type="button" variant="secondary" onClick={() => document.getElementById('importRules').click()}>
+              <Upload className="mr-2 h-4 w-4" /> Import Rules
+            </Button>
+          </div>
+        </div>
       </form>
     </div>
   );
