@@ -18,7 +18,22 @@ const Index = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <CardDescription>Manage your {item.title.toLowerCase()} settings and configurations.</CardDescription>
+              <CardDescription>
+                {item.title === "Auto-Reply" ? (
+                  <>
+                    Manage your auto-reply settings, including:
+                    <ul className="list-disc list-inside mt-2">
+                      <li>Ignore specific contacts/groups</li>
+                      <li>Schedule messages</li>
+                      <li>AI-powered responses</li>
+                      <li>Automatic follow-ups</li>
+                      <li>Backup and restore rules</li>
+                    </ul>
+                  </>
+                ) : (
+                  `Manage your ${item.title.toLowerCase()} settings and configurations.`
+                )}
+              </CardDescription>
             </CardContent>
           </Card>
         ))}
