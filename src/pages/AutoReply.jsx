@@ -10,13 +10,13 @@ import { PlusCircle, Trash2, Download, Upload } from "lucide-react";
 
 const AutoReply = () => {
   const [rules, setRules] = useState([
-    { trigger: "", responses: [""], recipientType: "all", ignoredContacts: "", scheduledTime: "", aiService: "", followUpTime: "" }
+    { trigger: "", responses: [""], recipientType: "all", ignoredContacts: "", scheduledTime: "", aiService: "", followUpTime: "", mediaType: "text" }
   ]);
   const [welcomeMessage, setWelcomeMessage] = useState("");
   const [enableWelcomeMessage, setEnableWelcomeMessage] = useState(false);
 
   const handleAddRule = () => {
-    setRules([...rules, { trigger: "", responses: [""], recipientType: "all", ignoredContacts: "", scheduledTime: "", aiService: "", followUpTime: "" }]);
+    setRules([...rules, { trigger: "", responses: [""], recipientType: "all", ignoredContacts: "", scheduledTime: "", aiService: "", followUpTime: "", mediaType: "text" }]);
   };
 
   const handleRemoveRule = (index) => {
@@ -188,17 +188,45 @@ const AutoReply = () => {
                 placeholder="Enter follow-up time in hours"
               />
             </div>
+            <div className="space-y-2">
+              <Label htmlFor={`mediaType-${ruleIndex}`}>Media Type</Label>
+              <Select
+                value={rule.mediaType}
+                onValueChange={(value) => handleRuleChange(ruleIndex, "mediaType", value)}
+              >
+                <SelectTrigger id={`mediaType-${ruleIndex}`}>
+                  <SelectValue placeholder="Select media type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="text">Text</SelectItem>
+                  <SelectItem value="image">Image</SelectItem>
+                  <SelectItem value="audio">Audio</SelectItem>
+                  <SelectItem value="video">Video</SelectItem>
+                  <SelectItem value="document">Document</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             {rule.responses.map((response, responseIndex) => (
               <div key={responseIndex} className="space-y-2">
                 <Label htmlFor={`response-${ruleIndex}-${responseIndex}`}>Response {responseIndex + 1}</Label>
                 <div className="flex space-x-2">
-                  <Textarea
-                    id={`response-${ruleIndex}-${responseIndex}`}
-                    value={response}
-                    onChange={(e) => handleResponseChange(ruleIndex, responseIndex, e.target.value)}
-                    placeholder="Enter auto-reply message"
-                    required
-                  />
+                  {rule.mediaType === 'text' ? (
+                    <Textarea
+                      id={`response-${ruleIndex}-${responseIndex}`}
+                      value={response}
+                      onChange={(e) => handleResponseChange(ruleIndex, responseIndex, e.target.value)}
+                      placeholder="Enter auto-reply message"
+                      required
+                    />
+                  ) : (
+                    <Input
+                      id={`response-${ruleIndex}-${responseIndex}`}
+                      type="file"
+                      onChange={(e) => handleResponseChange(ruleIndex, responseIndex, e.target.files[0])}
+                      accept={rule.mediaType === 'image' ? 'image/*' : rule.mediaType === 'audio' ? 'audio/*' : rule.mediaType === 'video' ? 'video/*' : '*/*'}
+                      required
+                    />
+                  )}
                   <Button type="button" variant="destructive" size="icon" onClick={() => handleRemoveResponse(ruleIndex, responseIndex)}>
                     <Trash2 className="h-4 w-4" />
                   </Button>
